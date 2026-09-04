@@ -29,7 +29,6 @@ class GameEngine {
         val numPlayers = initialPlayers.size
         val sbIndex = (dealerIndex + 1) % numPlayers
         val bbIndex = (dealerIndex + 2) % numPlayers
-        val firstActorIndex = if (numPlayers == 2) sbIndex else (dealerIndex + 3) % numPlayers
 
         // Deal 2 hole cards to each player
         val updatedPlayers = initialPlayers.map { player ->
@@ -63,6 +62,9 @@ class GameEngine {
         playersToActInRound.clear()
         updatedPlayers.filter { !it.isFolded && !it.isAllIn }.forEach { playersToActInRound.add(it.id) }
 
+        val startActorCandidate = if (numPlayers == 2) sbIndex else (dealerIndex + 3) % numPlayers
+        val validFirstActor = findNextActivePlayerIndex(updatedPlayers, (startActorCandidate + numPlayers - 1) % numPlayers)
+
         val logs = mutableListOf<String>()
         logs.add("Hand #${seed} started. Dealer: ${updatedPlayers[dealerIndex].name}")
         logs.add("${updatedPlayers[sbIndex].name} posts SB ($sbActual)")
@@ -75,7 +77,7 @@ class GameEngine {
             currentRound = BettingRound.PRE_FLOP,
             currentHighestBet = maxOf(sbActual, bbActual),
             totalPot = potManager.getTotalPot(),
-            activePlayerIndex = firstActorIndex,
+            activePlayerIndex = validFirstActor,
             dealerIndex = dealerIndex,
             smallBlindIndex = sbIndex,
             bigBlindIndex = bbIndex,
@@ -193,7 +195,7 @@ class GameEngine {
 
         // 2. Check if betting round is completed
         val canAct = activeNotFolded.filter { !it.isAllIn }
-        val roundComplete = playersToActInRound.isEmpty() || canAct.size <= 1
+        val roundComplete = playersToActInRound.isEmpty() || canAct.isEmpty() || (canAct.size == 1 && activeNotFolded.count { it.isAllIn } == activeNotFolded.size - 1)
 
         if (roundComplete) {
             advanceToNextRound()
@@ -255,9 +257,9 @@ class GameEngine {
             actionLogs = logs
         )
 
-        // If everyone left is all-in or 0/1 can act, run through remaining community cards
+        // If everyone left is all-in or no actions remain, advance automatically
         val canAct = updatedPlayers.filter { !it.isFolded && !it.isAllIn }
-        if (canAct.size <= 1) {
+        if (canAct.isEmpty() || (canAct.size == 1 && updatedPlayers.count { !it.isFolded && it.isAllIn } == updatedPlayers.count { !it.isFolded } - 1)) {
             advanceToNextRound()
         }
     }
