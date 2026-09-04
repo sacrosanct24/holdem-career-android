@@ -74,7 +74,7 @@ fun CareerHubScreen(
                 )
                 1 -> DossiersScreen()
                 2 -> EventsScreen()
-                3 -> AchievementsScreen()
+                3 -> AchievementsScreen(unlockedIds = careerState.unlockedMilestones)
             }
         }
     }

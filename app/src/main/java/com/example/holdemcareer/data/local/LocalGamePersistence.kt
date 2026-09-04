@@ -17,18 +17,25 @@ class LocalGamePersistence(context: Context) {
             putInt("total_hands_all_time", state.totalHandsPlayedAllTime)
             putInt("total_hands_run", state.totalHandsPlayedCurrentRun)
             putInt("highest_bankroll", state.highestBankrollReached)
+            putInt("active_loan_amount", state.activeLoanAmount)
+            putString("active_loan_opponent", state.activeLoanOpponentId)
+            putStringSet("unlocked_achievements", state.unlockedMilestones.toSet())
             apply()
         }
     }
 
     fun loadCareerState(): CareerState {
+        val milestonesSet = prefs.getStringSet("unlocked_achievements", emptySet()) ?: emptySet()
         return CareerState(
             currentRunBankroll = prefs.getInt("bankroll", 50),
             startingBankrollBaseline = prefs.getInt("starting_bankroll", 50),
             currentTableBuyIn = prefs.getInt("table_buy_in", 50),
             totalHandsPlayedAllTime = prefs.getInt("total_hands_all_time", 0),
             totalHandsPlayedCurrentRun = prefs.getInt("total_hands_run", 0),
-            highestBankrollReached = prefs.getInt("highest_bankroll", 50)
+            highestBankrollReached = prefs.getInt("highest_bankroll", 50),
+            activeLoanAmount = prefs.getInt("active_loan_amount", 0),
+            activeLoanOpponentId = prefs.getString("active_loan_opponent", null),
+            unlockedMilestones = milestonesSet.toList()
         )
     }
 
