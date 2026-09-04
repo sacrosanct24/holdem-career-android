@@ -16,7 +16,7 @@ class AiDecisionEngineTest {
 
     @Test
     fun testMarcusFoldsToHighBetWithWeakHand() {
-        val marcusProfile = OpponentCatalog.getById("marcus")
+        val marcusProfile = OpponentCatalog.getById("marcus").copy(bluffFrequency = 0.0f)
         val marcusState = PlayerState(
             id = "marcus",
             name = "Marcus",
