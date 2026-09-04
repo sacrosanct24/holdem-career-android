@@ -22,6 +22,7 @@ data class GameState(
     val bigBlindIndex: Int = 0,
     val smallBlindAmount: Int = 1,
     val bigBlindAmount: Int = 2,
+    val gameMode: GameMode = GameMode.NO_LIMIT_CASH,
     val winnersSummary: List<WinnerInfo> = emptyList(),
     val actionLogs: List<String> = emptyList()
 )

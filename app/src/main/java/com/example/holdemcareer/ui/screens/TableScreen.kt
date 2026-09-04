@@ -73,8 +73,8 @@ fun TableScreen(
         ) {
             // Header
             Text(
-                text = "Hold'em Career — $50 Table",
-                fontSize = 16.sp,
+                text = "Hold'em Career — $50 Table (${gameState.gameMode.displayName})",
+                fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFFFFD700),
                 modifier = Modifier.padding(top = 4.dp)
