@@ -25,6 +25,36 @@ class HandEvaluatorTest {
     }
 
     @Test
+    fun testStraightFlush() {
+        val cards = listOf(
+            Card.fromString("9s"), Card.fromString("8s"), Card.fromString("7s"),
+            Card.fromString("6s"), Card.fromString("5s"), Card.fromString("2c"), Card.fromString("3d")
+        )
+        val result = HandEvaluator.evaluate(cards)
+        assertEquals(HandRank.STRAIGHT_FLUSH, result.handRank)
+        assertEquals(9, result.tieBreakers[0])
+    }
+
+    @Test
+    fun testFourOfAKindBeatsFullHouse() {
+        val quads = listOf(
+            Card.fromString("9s"), Card.fromString("9h"), Card.fromString("9d"),
+            Card.fromString("9c"), Card.fromString("Ks"), Card.fromString("2c"), Card.fromString("3d")
+        )
+        val fullHouse = listOf(
+            Card.fromString("As"), Card.fromString("Ah"), Card.fromString("Ad"),
+            Card.fromString("Kc"), Card.fromString("Kd"), Card.fromString("2h"), Card.fromString("3s")
+        )
+
+        val quadResult = HandEvaluator.evaluate(quads)
+        val fhResult = HandEvaluator.evaluate(fullHouse)
+
+        assertEquals(HandRank.FOUR_OF_A_KIND, quadResult.handRank)
+        assertEquals(HandRank.FULL_HOUSE, fhResult.handRank)
+        assertTrue(quadResult > fhResult)
+    }
+
+    @Test
     fun testFullHouseBeatsFlush() {
         val fullHouseCards = listOf(
             Card.fromString("Ks"), Card.fromString("Kh"), Card.fromString("Kd"),
@@ -71,5 +101,22 @@ class HandEvaluatorTest {
         assertEquals(HandRank.TWO_PAIR, res1.handRank)
         assertEquals(HandRank.TWO_PAIR, res2.handRank)
         assertTrue(res1 > res2) // Queen kicker beats Jack kicker
+    }
+
+    @Test
+    fun testSplitPotExactTie() {
+        val board = listOf(
+            Card.fromString("Ah"), Card.fromString("Kd"), Card.fromString("Qc"),
+            Card.fromString("Js"), Card.fromString("Th")
+        )
+        val player1 = listOf(Card.fromString("2c"), Card.fromString("3c")) + board
+        val player2 = listOf(Card.fromString("4d"), Card.fromString("5d")) + board
+
+        val res1 = HandEvaluator.evaluate(player1)
+        val res2 = HandEvaluator.evaluate(player2)
+
+        assertEquals(HandRank.STRAIGHT, res1.handRank)
+        assertEquals(HandRank.STRAIGHT, res2.handRank)
+        assertEquals(0, res1.compareTo(res2)) // Exact tie for split pot!
     }
 }
