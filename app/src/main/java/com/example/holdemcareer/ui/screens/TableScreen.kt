@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.holdemcareer.domain.poker.engine.BettingRound
 import com.example.holdemcareer.domain.poker.engine.GameState
+import com.example.holdemcareer.domain.poker.engine.HandLoreGuide
 import com.example.holdemcareer.domain.poker.engine.PlayerAction
 import com.example.holdemcareer.domain.poker.engine.PlayerState
 import com.example.holdemcareer.domain.poker.engine.PositionGuide
@@ -283,23 +284,41 @@ fun TableScreen(
         // Hand Strength "?" Help Dialog
         if (showHandHelpDialog) {
             val human = gameState.players.firstOrNull { it.id == humanPlayerId }
-            val fullCards = (human?.holeCards ?: emptyList()) + gameState.communityCards
+            val holeCards = human?.holeCards ?: emptyList()
+            val fullCards = holeCards + gameState.communityCards
             val eval = if (fullCards.size >= 5) HandEvaluator.evaluate(fullCards) else null
+            val lore = HandLoreGuide.getHandNicknameAndLore(holeCards)
 
             AlertDialog(
                 onDismissRequest = { showHandHelpDialog = false },
-                title = { Text("Your Hand Analysis", fontWeight = FontWeight.Bold, color = Color(0xFFFFD700)) },
+                title = { Text("Your Hand & Lore Guide", fontWeight = FontWeight.Bold, color = Color(0xFFFFD700)) },
                 text = {
                     Column {
+                        if (lore != null) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(Color(0xFF2E2A12))
+                                    .padding(8.dp)
+                            ) {
+                                Column {
+                                    Text("🌟 Hand Nickname: ${lore.first}", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color(0xFFFFD700))
+                                    Text(lore.second, fontSize = 11.sp, color = Color.LightGray, modifier = Modifier.padding(top = 2.dp))
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+
                         if (eval != null) {
-                            Text("Current Hand: ${eval.description}", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color.White)
-                            Text("Hand Rank: ${eval.handRank.displayName}", fontSize = 13.sp, color = Color(0xFF81C784), modifier = Modifier.padding(vertical = 4.dp))
+                            Text("Current Combination: ${eval.description}", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.White)
+                            Text("Hand Rank: ${eval.handRank.displayName}", fontSize = 12.sp, color = Color(0xFF81C784), modifier = Modifier.padding(vertical = 2.dp))
                         } else {
-                            Text("Hole cards dealt. Community cards will determine your 5-card combination.", fontSize = 13.sp, color = Color.LightGray)
+                            Text("Hole cards dealt. Community cards will determine your 5-card combination.", fontSize = 12.sp, color = Color.LightGray)
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text("Texas Hold'em Hand Hierarchy:", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color(0xFFFFD700))
+                        Text("Texas Hold'em Hand Hierarchy:", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color(0xFFFFD700))
                         Text("1. Royal Flush\n2. Straight Flush\n3. Four of a Kind\n4. Full House\n5. Flush\n6. Straight\n7. Three of a Kind\n8. Two Pair\n9. One Pair\n10. High Card", fontSize = 11.sp, color = Color.LightGray)
                     }
                 },
