@@ -2,6 +2,7 @@ package com.example.holdemcareer.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +35,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -41,6 +44,8 @@ import com.example.holdemcareer.domain.poker.engine.BettingRound
 import com.example.holdemcareer.domain.poker.engine.GameState
 import com.example.holdemcareer.domain.poker.engine.PlayerAction
 import com.example.holdemcareer.domain.poker.engine.PlayerState
+import com.example.holdemcareer.domain.poker.engine.PositionGuide
+import com.example.holdemcareer.domain.poker.evaluator.HandEvaluator
 import com.example.holdemcareer.ui.components.BettingControlsView
 import com.example.holdemcareer.ui.components.PlayingCardView
 
@@ -54,7 +59,10 @@ fun TableScreen(
 ) {
     val activePlayer = gameState.players.getOrNull(gameState.activePlayerIndex)
     val isHumanTurn = activePlayer?.id == humanPlayerId && gameState.currentRound != BettingRound.ENDED
+
     var showWhatHappenedDialog by remember { mutableStateOf(false) }
+    var selectedPositionExplanation by remember { mutableStateOf<String?>(null) }
+    var showHandHelpDialog by remember { mutableStateOf(false) }
 
     val feltGradient = Brush.radialGradient(
         colors = listOf(Color(0xFF1B4D24), Color(0xFF0A240E)),
@@ -131,87 +139,34 @@ fun TableScreen(
 
                 // Radially placed seats (6-Max Layout)
                 val seats = gameState.players
+                val totalPlayers = seats.size
                 if (seats.isNotEmpty()) {
-                    // Seat 0: Human Player (Bottom Center)
-                    val p0 = seats.getOrNull(0)
-                    if (p0 != null) {
-                        Box(modifier = Modifier.align(Alignment.BottomCenter)) {
-                            PlayerSeatView(
-                                player = p0,
-                                isDealer = gameState.dealerIndex == 0,
-                                isActive = gameState.activePlayerIndex == 0 && gameState.currentRound != BettingRound.ENDED,
-                                isShowdown = gameState.currentRound == BettingRound.SHOWDOWN || gameState.currentRound == BettingRound.ENDED,
-                                humanPlayerId = humanPlayerId
-                            )
-                        }
-                    }
+                    val seatAlignments = listOf(
+                        Alignment.BottomCenter,
+                        Alignment.TopStart,
+                        Alignment.TopCenter,
+                        Alignment.TopEnd,
+                        Alignment.BottomEnd,
+                        Alignment.BottomStart
+                    )
 
-                    // Seat 1: Top Left
-                    val p1 = seats.getOrNull(1)
-                    if (p1 != null) {
-                        Box(modifier = Modifier.align(Alignment.TopStart)) {
+                    seats.forEachIndexed { index, p ->
+                        val align = seatAlignments.getOrElse(index) { Alignment.Center }
+                        val posLabel = PositionGuide.getPositionLabel(index, gameState.dealerIndex, totalPlayers)
+                        Box(modifier = Modifier.align(align)) {
                             PlayerSeatView(
-                                player = p1,
-                                isDealer = gameState.dealerIndex == 1,
-                                isActive = gameState.activePlayerIndex == 1 && gameState.currentRound != BettingRound.ENDED,
+                                player = p,
+                                positionLabel = posLabel,
+                                isDealer = gameState.dealerIndex == index,
+                                isActive = gameState.activePlayerIndex == index && gameState.currentRound != BettingRound.ENDED,
                                 isShowdown = gameState.currentRound == BettingRound.SHOWDOWN || gameState.currentRound == BettingRound.ENDED,
-                                humanPlayerId = humanPlayerId
-                            )
-                        }
-                    }
-
-                    // Seat 2: Top Center
-                    val p2 = seats.getOrNull(2)
-                    if (p2 != null) {
-                        Box(modifier = Modifier.align(Alignment.TopCenter)) {
-                            PlayerSeatView(
-                                player = p2,
-                                isDealer = gameState.dealerIndex == 2,
-                                isActive = gameState.activePlayerIndex == 2 && gameState.currentRound != BettingRound.ENDED,
-                                isShowdown = gameState.currentRound == BettingRound.SHOWDOWN || gameState.currentRound == BettingRound.ENDED,
-                                humanPlayerId = humanPlayerId
-                            )
-                        }
-                    }
-
-                    // Seat 3: Top Right
-                    val p3 = seats.getOrNull(3)
-                    if (p3 != null) {
-                        Box(modifier = Modifier.align(Alignment.TopEnd)) {
-                            PlayerSeatView(
-                                player = p3,
-                                isDealer = gameState.dealerIndex == 3,
-                                isActive = gameState.activePlayerIndex == 3 && gameState.currentRound != BettingRound.ENDED,
-                                isShowdown = gameState.currentRound == BettingRound.SHOWDOWN || gameState.currentRound == BettingRound.ENDED,
-                                humanPlayerId = humanPlayerId
-                            )
-                        }
-                    }
-
-                    // Seat 4: Bottom Right
-                    val p4 = seats.getOrNull(4)
-                    if (p4 != null) {
-                        Box(modifier = Modifier.align(Alignment.BottomEnd)) {
-                            PlayerSeatView(
-                                player = p4,
-                                isDealer = gameState.dealerIndex == 4,
-                                isActive = gameState.activePlayerIndex == 4 && gameState.currentRound != BettingRound.ENDED,
-                                isShowdown = gameState.currentRound == BettingRound.SHOWDOWN || gameState.currentRound == BettingRound.ENDED,
-                                humanPlayerId = humanPlayerId
-                            )
-                        }
-                    }
-
-                    // Seat 5: Bottom Left
-                    val p5 = seats.getOrNull(5)
-                    if (p5 != null) {
-                        Box(modifier = Modifier.align(Alignment.BottomStart)) {
-                            PlayerSeatView(
-                                player = p5,
-                                isDealer = gameState.dealerIndex == 5,
-                                isActive = gameState.activePlayerIndex == 5 && gameState.currentRound != BettingRound.ENDED,
-                                isShowdown = gameState.currentRound == BettingRound.SHOWDOWN || gameState.currentRound == BettingRound.ENDED,
-                                humanPlayerId = humanPlayerId
+                                humanPlayerId = humanPlayerId,
+                                onPositionPillClicked = { label ->
+                                    selectedPositionExplanation = PositionGuide.getPositionExplanation(label)
+                                },
+                                onHandHelpClicked = {
+                                    showHandHelpDialog = true
+                                }
                             )
                         }
                     }
@@ -301,23 +256,83 @@ fun TableScreen(
                 }
             )
         }
+
+        // Position Pill Explanation Tooltip Dialog
+        if (selectedPositionExplanation != null) {
+            AlertDialog(
+                onDismissRequest = { selectedPositionExplanation = null },
+                title = { Text("Position Guide", fontWeight = FontWeight.Bold, color = Color(0xFFFFD700)) },
+                text = {
+                    Text(
+                        text = selectedPositionExplanation!!,
+                        fontSize = 14.sp,
+                        color = Color.White
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = { selectedPositionExplanation = null },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700))
+                    ) {
+                        Text("Got it", color = Color.Black, fontWeight = FontWeight.Bold)
+                    }
+                }
+            )
+        }
+
+        // Hand Strength "?" Help Dialog
+        if (showHandHelpDialog) {
+            val human = gameState.players.firstOrNull { it.id == humanPlayerId }
+            val fullCards = (human?.holeCards ?: emptyList()) + gameState.communityCards
+            val eval = if (fullCards.size >= 5) HandEvaluator.evaluate(fullCards) else null
+
+            AlertDialog(
+                onDismissRequest = { showHandHelpDialog = false },
+                title = { Text("Your Hand Analysis", fontWeight = FontWeight.Bold, color = Color(0xFFFFD700)) },
+                text = {
+                    Column {
+                        if (eval != null) {
+                            Text("Current Hand: ${eval.description}", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color.White)
+                            Text("Hand Rank: ${eval.handRank.displayName}", fontSize = 13.sp, color = Color(0xFF81C784), modifier = Modifier.padding(vertical = 4.dp))
+                        } else {
+                            Text("Hole cards dealt. Community cards will determine your 5-card combination.", fontSize = 13.sp, color = Color.LightGray)
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Texas Hold'em Hand Hierarchy:", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color(0xFFFFD700))
+                        Text("1. Royal Flush\n2. Straight Flush\n3. Four of a Kind\n4. Full House\n5. Flush\n6. Straight\n7. Three of a Kind\n8. Two Pair\n9. One Pair\n10. High Card", fontSize = 11.sp, color = Color.LightGray)
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = { showHandHelpDialog = false },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700))
+                    ) {
+                        Text("Close", color = Color.Black, fontWeight = FontWeight.Bold)
+                    }
+                }
+            )
+        }
     }
 }
 
 @Composable
 fun PlayerSeatView(
     player: PlayerState,
+    positionLabel: String,
     isDealer: Boolean,
     isActive: Boolean,
     isShowdown: Boolean,
-    humanPlayerId: String
+    humanPlayerId: String,
+    onPositionPillClicked: (String) -> Unit = {},
+    onHandHelpClicked: () -> Unit = {}
 ) {
     val isHuman = player.id == humanPlayerId
     val borderColor = if (isActive) Color(0xFFFFD700) else Color(0x44FFFFFF)
 
     Box(
         modifier = Modifier
-            .width(96.dp)
+            .width(100.dp)
             .clip(RoundedCornerShape(10.dp))
             .background(if (player.isFolded) Color(0x55000000) else Color(0xDD1E1E1E))
             .border(2.dp, borderColor, RoundedCornerShape(10.dp))
@@ -325,26 +340,43 @@ fun PlayerSeatView(
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            // Position Pill & Dealer Badge Row
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
+                // Position Pill (Clickable for explanation)
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(Color(0xFF333333))
+                        .clickable { onPositionPillClicked(positionLabel) }
+                        .padding(horizontal = 5.dp, vertical = 1.dp)
+                ) {
+                    Text(
+                        text = positionLabel,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color(0xFFFFD700)
+                    )
+                }
+
                 Text(
                     text = player.name,
                     fontWeight = FontWeight.Bold,
                     fontSize = 11.sp,
                     color = Color.White
                 )
+
                 if (isDealer) {
-                    Spacer(modifier = Modifier.width(4.dp))
                     Box(
                         modifier = Modifier
-                            .size(16.dp)
+                            .size(14.dp)
                             .clip(CircleShape)
                             .background(Color(0xFFFFD700)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("D", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text("D", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                     }
                 }
             }
@@ -356,13 +388,29 @@ fun PlayerSeatView(
                 color = Color(0xFFFFD700)
             )
 
+            // Hole cards row with "?" help button for human
             Row(
                 horizontalArrangement = Arrangement.spacedBy(2.dp),
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(top = 2.dp)
             ) {
                 val showCards = isHuman || isShowdown
                 for (card in player.holeCards) {
                     PlayingCardView(card = card, isFaceUp = showCards)
+                }
+
+                if (isHuman) {
+                    Box(
+                        modifier = Modifier
+                            .size(18.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFF1565C0))
+                            .clickable { onHandHelpClicked() }
+                            .semantics { contentDescription = "Hand help and rankings guide" },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("?", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    }
                 }
             }
 
