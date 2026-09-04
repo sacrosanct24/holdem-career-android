@@ -16,6 +16,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -25,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.holdemcareer.domain.career.CareerState
+import com.example.holdemcareer.domain.poker.engine.GameMode
 import com.example.holdemcareer.domain.poker.engine.GameState
 import com.example.holdemcareer.domain.poker.engine.PlayerAction
 
@@ -39,6 +41,9 @@ fun CareerHubScreen(
     modifier: Modifier = Modifier
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
+    var currentMode by remember { mutableStateOf(gameState.gameMode) }
+    var isKeepInDark by remember { mutableStateOf(false) }
+    var isFourColorDeck by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -96,7 +101,13 @@ fun CareerHubScreen(
                     selected = selectedTab == 3,
                     onClick = { selectedTab = 3 },
                     icon = {},
-                    label = { Text("Achievements", fontWeight = FontWeight.Bold, color = if (selectedTab == 3) Color(0xFFFFD700) else Color.Gray) }
+                    label = { Text("Badges", fontWeight = FontWeight.Bold, color = if (selectedTab == 3) Color(0xFFFFD700) else Color.Gray) }
+                )
+                NavigationBarItem(
+                    selected = selectedTab == 4,
+                    onClick = { selectedTab = 4 },
+                    icon = {},
+                    label = { Text("Options", fontWeight = FontWeight.Bold, color = if (selectedTab == 4) Color(0xFFFFD700) else Color.Gray) }
                 )
             }
         }
@@ -116,6 +127,15 @@ fun CareerHubScreen(
                 1 -> DossiersScreen()
                 2 -> EventsScreen()
                 3 -> AchievementsScreen(unlockedIds = careerState.unlockedMilestones)
+                4 -> OptionsScreen(
+                    currentMode = currentMode,
+                    isKeepInDark = isKeepInDark,
+                    isFourColorDeck = isFourColorDeck,
+                    onModeChanged = { currentMode = it },
+                    onKeepInDarkChanged = { isKeepInDark = it },
+                    onFourColorDeckChanged = { isFourColorDeck = it },
+                    onResetCareerClicked = {}
+                )
             }
         }
     }

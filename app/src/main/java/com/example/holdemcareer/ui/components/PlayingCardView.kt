@@ -14,25 +14,30 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.holdemcareer.domain.poker.model.Card
+import com.example.holdemcareer.domain.poker.model.Suit
 
 @Composable
 fun PlayingCardView(
     card: Card?,
     modifier: Modifier = Modifier,
-    isFaceUp: Boolean = true
+    isFaceUp: Boolean = true,
+    isFourColorDeck: Boolean = false
 ) {
     val shape = RoundedCornerShape(6.dp)
 
     if (card == null || !isFaceUp) {
-        // Face down card back
+        val desc = "Face down playing card"
         Box(
             modifier = modifier
                 .width(44.dp)
                 .height(62.dp)
+                .semantics { contentDescription = desc }
                 .clip(shape)
                 .background(Color(0xFF1B365D))
                 .border(1.5.dp, Color.White, shape)
@@ -40,12 +45,24 @@ fun PlayingCardView(
         return
     }
 
-    val textColor = if (card.suit.isRed) Color(0xFFD32F2F) else Color(0xFF111111)
+    val cardDesc = "${card.rank.name.lowercase().replaceFirstChar { it.uppercase() }} of ${card.suit.name.lowercase().replaceFirstChar { it.uppercase() }}"
+
+    val textColor = if (isFourColorDeck) {
+        when (card.suit) {
+            Suit.HEARTS -> Color(0xFFD32F2F)   // Red
+            Suit.DIAMONDS -> Color(0xFF1565C0) // Blue
+            Suit.CLUBS -> Color(0xFF2E7D32)    // Green
+            Suit.SPADES -> Color(0xFF111111)   // Black
+        }
+    } else {
+        if (card.suit.isRed) Color(0xFFD32F2F) else Color(0xFF111111)
+    }
 
     Box(
         modifier = modifier
             .width(44.dp)
             .height(62.dp)
+            .semantics { contentDescription = cardDesc }
             .clip(shape)
             .background(Color.White)
             .border(1.dp, Color(0xFFCCCCCC), shape)
